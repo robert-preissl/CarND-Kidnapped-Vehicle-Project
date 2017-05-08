@@ -27,23 +27,23 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS)
 	for(int i = 0; i < num_particles; ++i) {
 		Particle p;
-		p.id = i;
 		// Add random Gaussian noise to each particle.
 		p.x      = dist_x(gen);
 		p.y      = dist_y(gen);
 		p.theta  = dist_theta(gen);
-		p.weight = 1.0;
+
+		p.id = i;
 
 		// std::cout << "Particle i = " << i << " / x = " << p.x << " / y = " << p.y << " / O = " << p.theta << std::endl;
 
 		particles.push_back(p);
 
 		// set all weights to 1.
+		p.weight = 1.0;
 		weights.push_back(p.weight);
 	}
 
 	is_initialized = true;
-
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -146,12 +146,11 @@ double ParticleFilter::update_weights_multv_gaussian_distr(
 	double div = 2.0 * M_PI * std_landmark[0] * std_landmark[1];
 
 	for (std::map<int,int>::const_iterator it = map_obs_to_lm.begin(); it != map_obs_to_lm.end(); ++it) {
-
 			// std::cout << " closest_lm_id " << it->first << std::endl;
-			if (it->first != -1) { // if there is even an association
+			if (it->first != -1) { // if there is even a closest association
 				double diff_x = obs[it->first].x - lm_l[it->second].x_f;
 				double diff_y = obs[it->first].y - lm_l[it->second].y_f;
-				weight *= (1 / div) * exp( -0.5 * (pow(diff_x / std_landmark[0],2) + pow(diff_y / std_landmark[1],2) ) );
+				weight *= (1 / div) * exp( -0.5 * (pow(diff_x / std_landmark[0], 2) + pow(diff_y / std_landmark[1], 2) ) );
 			}
 	}
 	return weight;
@@ -186,7 +185,7 @@ void ParticleFilter::resample() {
 		//std::cout << " weights[ " << i << "] = " << weights[i] << std::endl;
 	}
 
-	std::discrete_distribution<> weight_distr(weights.begin(), weights.end());
+	std::discrete_distribution<double> weight_distr(weights.begin(), weights.end());
 	std::vector<Particle> new_particles;
 
 	for (int i = 0; i < num_particles; ++i) {
